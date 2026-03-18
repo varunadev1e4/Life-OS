@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { itemsApi, journalApi, habitsApi, goalsApi, notesApi } from '@/lib/supabase'
+import { itemsApi, journalApi, habitsApi, goalsApi, notesApi, expensesApi, occasionsApi } from '@/lib/supabase'
 import { calculateStreak, today, getLast30Days } from '@/utils/helpers'
 import type {
   Item, ItemInsert, ItemUpdate,
@@ -7,6 +7,8 @@ import type {
   Habit, HabitInsert, HabitUpdate, HabitWithStreak, HabitLog,
   Goal, GoalInsert, GoalUpdate,
   Note, NoteInsert, NoteUpdate,
+  Expense, ExpenseInsert, ExpenseUpdate,
+  Occasion, OccasionInsert, OccasionUpdate,
   FilterState,
 } from '@/types'
 
@@ -381,5 +383,138 @@ export const useNotesStore = create<NotesStore>((set, get) => ({
   archiveNote: async (id: string) => {
     await notesApi.update(id, { is_archived: true })
     set(s => ({ notes: s.notes.filter(n => n.id !== id) }))
+  },
+}))
+
+// ─── Expenses Store ──────────────────────────────────────────
+interface ExpensesStore {
+  expenses: Expense[]
+  isLoading: boolean
+  fetchExpenses: () => Promise<void>
+  addExpense: (e: ExpenseInsert) => Promise<Expense>
+  updateExpense: (id: string, u: ExpenseUpdate) => Promise<Expense>
+  deleteExpense: (id: string) => Promise<void>
+  getMonthlyTotal: (year: number, month: number) => number
+  getCategoryTotals: (year: number, month: number) => Record<string, number>
+}
+
+export const useExpensesStore = create<ExpensesStore>((set, get) => ({
+  expenses: [],
+  isLoading: false,
+
+  fetchExpenses: async () => {
+    set({ isLoading: true })
+    try {
+      const expenses = await expensesApi.getAll()
+      set({ expenses, isLoading: false })
+    } catch (err) {
+      set({ isLoading: false })
+      throw err
+    }
+  },
+
+  addExpense: async (e: ExpenseInsert) => {
+    const created = await expensesApi.create(e)
+    set(s => ({ expenses: [created, ...s.expenses] }))
+    return created
+  },
+
+  updateExpense: async (id: string, u: ExpenseUpdate) => {
+    const updated = await expensesApi.update(id, u)
+    set(s => ({ expenses: s.expenses.map(e => e.id === id ? updated : e) }))
+    return updated
+  },
+
+  deleteExpense: async (id: string) => {
+    await expensesApi.delete(id)
+    set(s => ({ expenses: s.expenses.filter(e => e.id !== id) }))
+  },
+
+  getMonthlyTotal: (year, month) => {
+    const { expenses } = get()
+    return expenses
+      .filter(e => {
+        const d = new Date(e.date)
+        return d.getFullYear() === year && d.getMonth() + 1 === month
+      })
+      .reduce((sum, e) => sum + Number(e.amount), 0)
+  },
+
+  getCategoryTotals: (year, month) => {
+    const { expenses } = get()
+    return expenses
+      .filter(e => {
+        const d = new Date(e.date)
+        return d.getFullYear() === year && d.getMonth() + 1 === month
+      })
+      .reduce((acc, e) => {
+        acc[e.category] = (acc[e.category] || 0) + Number(e.amount)
+        return acc
+      }, {} as Record<string, number>)
+  },
+}))
+
+// ─── Occasions Store ─────────────────────────────────────────
+interface OccasionsStore {
+  occasions: Occasion[]
+  isLoading: boolean
+  fetchOccasions: () => Promise<void>
+  addOccasion: (o: OccasionInsert) => Promise<Occasion>
+  updateOccasion: (id: string, u: OccasionUpdate) => Promise<Occasion>
+  deleteOccasion: (id: string) => Promise<void>
+  getUpcoming: (days?: number) => Occasion[]
+}
+
+export const useOccasionsStore = create<OccasionsStore>((set, get) => ({
+  occasions: [],
+  isLoading: false,
+
+  fetchOccasions: async () => {
+    set({ isLoading: true })
+    try {
+      const occasions = await occasionsApi.getAll()
+      set({ occasions, isLoading: false })
+    } catch (err) {
+      set({ isLoading: false })
+      throw err
+    }
+  },
+
+  addOccasion: async (o: OccasionInsert) => {
+    const created = await occasionsApi.create(o)
+    set(s => ({ occasions: [...s.occasions, created].sort((a, b) => a.date.localeCompare(b.date)) }))
+    return created
+  },
+
+  updateOccasion: async (id: string, u: OccasionUpdate) => {
+    const updated = await occasionsApi.update(id, u)
+    set(s => ({ occasions: s.occasions.map(o => o.id === id ? updated : o) }))
+    return updated
+  },
+
+  deleteOccasion: async (id: string) => {
+    await occasionsApi.delete(id)
+    set(s => ({ occasions: s.occasions.filter(o => o.id !== id) }))
+  },
+
+  getUpcoming: (days = 60) => {
+    const { occasions } = get()
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const future = new Date(today)
+    future.setDate(future.getDate() + days)
+
+    return occasions
+      .map(o => {
+        // For recurring occasions, compute next occurrence this year or next
+        let d = new Date(o.date)
+        if (o.is_recurring) {
+          d.setFullYear(today.getFullYear())
+          if (d < today) d.setFullYear(today.getFullYear() + 1)
+        }
+        return { ...o, _nextDate: d }
+      })
+      .filter(o => o._nextDate >= today && o._nextDate <= future)
+      .sort((a, b) => a._nextDate.getTime() - b._nextDate.getTime())
   },
 }))

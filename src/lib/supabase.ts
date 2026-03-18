@@ -6,7 +6,9 @@ import type {
   HabitLog,
   Goal, GoalInsert, GoalUpdate,
   Tag, AppSettings,
-  Note, NoteInsert, NoteUpdate
+  Note, NoteInsert, NoteUpdate,
+  Expense, ExpenseInsert, ExpenseUpdate,
+  Occasion, OccasionInsert, OccasionUpdate
 } from '@/types'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -340,6 +342,62 @@ export const notesApi = {
       .order('updated_at', { ascending: false })
     if (error) throw new Error(error.message)
     return data as Note[]
+  },
+}
+
+
+// ============================================================
+// EXPENSES API
+// ============================================================
+export const expensesApi = {
+  async getAll() {
+    const { data, error } = await supabase
+      .from('expenses').select('*')
+      .order('date', { ascending: false })
+      .order('created_at', { ascending: false })
+    if (error) throw new Error(error.message)
+    return data as Expense[]
+  },
+  async create(e: ExpenseInsert) {
+    const { data, error } = await supabase.from('expenses').insert(e).select().single()
+    if (error) throw new Error(error.message)
+    return data as Expense
+  },
+  async update(id: string, updates: ExpenseUpdate) {
+    const { data, error } = await supabase.from('expenses').update(updates).eq('id', id).select().single()
+    if (error) throw new Error(error.message)
+    return data as Expense
+  },
+  async delete(id: string) {
+    const { error } = await supabase.from('expenses').delete().eq('id', id)
+    if (error) throw new Error(error.message)
+  },
+}
+
+// ============================================================
+// OCCASIONS API
+// ============================================================
+export const occasionsApi = {
+  async getAll() {
+    const { data, error } = await supabase
+      .from('occasions').select('*')
+      .order('date', { ascending: true })
+    if (error) throw new Error(error.message)
+    return data as Occasion[]
+  },
+  async create(o: OccasionInsert) {
+    const { data, error } = await supabase.from('occasions').insert(o).select().single()
+    if (error) throw new Error(error.message)
+    return data as Occasion
+  },
+  async update(id: string, updates: OccasionUpdate) {
+    const { data, error } = await supabase.from('occasions').update(updates).eq('id', id).select().single()
+    if (error) throw new Error(error.message)
+    return data as Occasion
+  },
+  async delete(id: string) {
+    const { error } = await supabase.from('occasions').delete().eq('id', id)
+    if (error) throw new Error(error.message)
   },
 }
 

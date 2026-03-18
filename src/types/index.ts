@@ -204,3 +204,41 @@ export interface Note {
 
 export type NoteInsert = Omit<Note, 'id' | 'created_at' | 'updated_at'>
 export type NoteUpdate = Partial<NoteInsert>
+
+// ── Expense Tracker ──────────────────────────────────────────
+export type ExpenseCategory = 'food' | 'transport' | 'shopping' | 'health' | 'entertainment' | 'bills' | 'education' | 'travel' | 'personal' | 'other'
+export type PaymentMethod   = 'cash' | 'card' | 'upi' | 'netbanking' | 'other'
+
+export interface Expense {
+  id: string
+  title: string
+  amount: number
+  category: ExpenseCategory
+  date: string
+  notes: string | null
+  is_recurring: boolean
+  payment_method: PaymentMethod
+  created_at: string
+  updated_at: string
+}
+export type ExpenseInsert = Omit<Expense, 'id' | 'created_at' | 'updated_at'>
+export type ExpenseUpdate  = Partial<ExpenseInsert>
+
+// ── Occasion Tracker ─────────────────────────────────────────
+export type OccasionType = 'birthday' | 'anniversary' | 'graduation' | 'wedding' | 'festival' | 'meeting' | 'other'
+
+export interface Occasion {
+  id: string
+  person_name: string
+  occasion_type: OccasionType
+  date: string
+  is_recurring: boolean
+  notes: string | null
+  gift_ideas: string | null
+  budget: number | null
+  is_completed: boolean
+  created_at: string
+  updated_at: string
+}
+export type OccasionInsert = Omit<Occasion, 'id' | 'created_at' | 'updated_at'>
+export type OccasionUpdate  = Partial<OccasionInsert>

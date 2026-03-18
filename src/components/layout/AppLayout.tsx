@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, Library, BookOpen, CheckSquare,
   Target, BarChart2, Settings, LogOut, ChevronRight, StickyNote, Sun, Moon,
+  Wallet, PartyPopper,
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useTheme } from '@/context/ThemeContext'
@@ -16,6 +17,8 @@ const NAV = [
   { path: '/habits',    label: 'Habits',    Icon: CheckSquare,     color: '#f59e0b' },
   { path: '/goals',     label: 'Goals',     Icon: Target,          color: '#f87171' },
   { path: '/notes',     label: 'Notes',     Icon: StickyNote,      color: '#fbbf24' },
+  { path: '/expenses',  label: 'Expenses',  Icon: Wallet,          color: '#34d399' },
+  { path: '/occasions', label: 'Occasions', Icon: PartyPopper,     color: '#f472b6' },
   { path: '/analytics', label: 'Analytics', Icon: BarChart2,       color: '#a78bfa' },
   { path: '/settings',  label: 'Settings',  Icon: Settings,        color: '#a8a8c0' },
 ]
@@ -168,12 +171,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         {/* Mobile top bar */}
         <header className="lg:hidden flex items-center justify-between px-4 h-14 border-b border-[var(--border)] bg-[var(--bg-surface)] shrink-0">
           <div className="flex items-center gap-2.5">
-            <div
-              className="w-7 h-7 rounded-lg flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #7c6af7, #38bdf8)' }}
-            >
-              <span className="text-xs font-bold text-white">◎</span>
-            </div>
+            <span className="text-sm font-bold text-white leading-none">◎</span>
             <span className="font-display font-bold text-[var(--text-primary)] tracking-tight">Life OS</span>
           </div>
           <div className="flex items-center gap-2">

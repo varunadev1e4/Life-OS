@@ -19,6 +19,8 @@ import { GoalsPage } from '@/pages/GoalsPage'
 import { AnalyticsPage } from '@/pages/AnalyticsPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { NotesPage } from '@/pages/NotesPage'
+import { ExpensesPage } from '@/pages/ExpensesPage'
+import { OccasionsPage } from '@/pages/OccasionsPage'
 
 function AppRoutes() {
   const { isAuthenticated, isLoading, hasSetup } = useAuth()
@@ -38,6 +40,8 @@ function AppRoutes() {
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/notes" element={<NotesPage />} />
+        <Route path="/expenses" element={<ExpensesPage />} />
+        <Route path="/occasions" element={<OccasionsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AppLayout>

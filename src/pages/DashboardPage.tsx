@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
-import { useItemsStore, useJournalStore, useHabitsStore, useGoalsStore } from '@/lib/store'
+import { useItemsStore, useJournalStore, useHabitsStore, useGoalsStore, useExpensesStore, useOccasionsStore } from '@/lib/store'
 import { today, MOOD_EMOJI, MOOD_COLOR, calculateProgress, ITEM_TYPE_CONFIG } from '@/utils/helpers'
 import { Skeleton, ProgressBar } from '@/components/ui'
 import { QuoteOfTheDay } from '@/components/dashboard/QuoteOfTheDay'
@@ -23,13 +23,19 @@ export function DashboardPage() {
   const { getHabitsWithStats, fetchHabits, fetchLogs: fetchHabitLogs, getTodayCompletionRate } = useHabitsStore()
   const { goals, fetchGoals } = useGoalsStore()
 
+  const { getMonthlyTotal } = useExpensesStore()
+  const { getUpcoming, fetchOccasions } = useOccasionsStore()
+  const { fetchExpenses } = useExpensesStore()
+
   useEffect(() => {
     fetchItems()
     fetchJournal(7)
     fetchHabits()
     fetchHabitLogs()
     fetchGoals()
-  }, [fetchItems, fetchJournal, fetchHabits, fetchHabitLogs, fetchGoals])
+    fetchExpenses()
+    fetchOccasions()
+  }, [fetchItems, fetchJournal, fetchHabits, fetchHabitLogs, fetchGoals, fetchExpenses, fetchOccasions])
 
   const todayStr = today()
   const todayJournal = journalLogs.find(l => l.date === todayStr)
@@ -44,7 +50,10 @@ export function DashboardPage() {
     const inProgress = items.filter(i => i.status === 'in_progress')
     const activeGoals = goals.filter(g => g.status === 'active')
     const topStreak = habitsWithStats.reduce((max, h) => Math.max(max, h.streak), 0)
-    return { booksThisYear, moviesThisYear, inProgress, activeGoals, topStreak }
+    const now = new Date()
+    const monthlySpend = getMonthlyTotal(now.getFullYear(), now.getMonth() + 1)
+    const upcomingOccasions = getUpcoming(14)
+    return { booksThisYear, moviesThisYear, inProgress, activeGoals, topStreak, monthlySpend, upcomingOccasions }
   }, [items, goals, habitsWithStats])
 
   const greeting = () => {
@@ -73,12 +82,14 @@ export function DashboardPage() {
         </motion.div>
 
         {/* Quick Stats Row */}
-        <motion.div variants={fadeUp} className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <motion.div variants={fadeUp} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {[
             { label: 'Books This Year', value: stats.booksThisYear, icon: '📚', color: '#f59e0b' },
             { label: 'Movies This Year', value: stats.moviesThisYear, icon: '🎬', color: '#f87171' },
             { label: 'Top Streak', value: `${stats.topStreak}d`, icon: '🔥', color: '#f59e0b' },
             { label: 'Active Goals', value: stats.activeGoals.length, icon: '🎯', color: '#7c6af7' },
+            { label: 'This Month Spent', value: `₹${Math.round(stats.monthlySpend / 1000)}k`, icon: '💸', color: '#34d399' },
+            { label: 'Upcoming Events', value: stats.upcomingOccasions.length, icon: '🎉', color: '#f472b6' },
           ].map(stat => (
             <div key={stat.label} className="card p-4 flex flex-col gap-1">
               <div className="flex items-center justify-between">
