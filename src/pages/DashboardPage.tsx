@@ -20,12 +20,11 @@ const fadeUp = {
 export function DashboardPage() {
   const { items, fetchItems, isLoading: itemsLoading } = useItemsStore()
   const { logs: journalLogs, fetchLogs: fetchJournal } = useJournalStore()
-  const { getHabitsWithStats, fetchHabits, fetchLogs: fetchHabitLogs, getTodayCompletionRate } = useHabitsStore()
+  const { getHabitsWithStats, getTodayCompletionRate, fetchHabits, fetchLogs: fetchHabitLogs } = useHabitsStore()
   const { goals, fetchGoals } = useGoalsStore()
 
-  const { getMonthlyTotal } = useExpensesStore()
+  const { getMonthlyTotal, fetchExpenses } = useExpensesStore()
   const { getUpcoming, fetchOccasions } = useOccasionsStore()
-  const { fetchExpenses } = useExpensesStore()
 
   useEffect(() => {
     fetchItems()
@@ -35,7 +34,7 @@ export function DashboardPage() {
     fetchGoals()
     fetchExpenses()
     fetchOccasions()
-  }, [fetchItems, fetchJournal, fetchHabits, fetchHabitLogs, fetchGoals, fetchExpenses, fetchOccasions])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const todayStr = today()
   const todayJournal = journalLogs.find(l => l.date === todayStr)

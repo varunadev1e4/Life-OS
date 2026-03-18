@@ -26,6 +26,7 @@ function extractDomain(url: string) {
 
 export function BookmarksPage() {
   const { bookmarks, isLoading, fetchBookmarks, addBookmark, updateBookmark, deleteBookmark, toggleRead, toggleFavorite } = useBookmarksStore()
+  useEffect(() => { fetchBookmarks() }, []) // eslint-disable-line
   const { success, error: showError } = useToast()
 
   const [showForm, setShowForm] = useState(false)
@@ -35,7 +36,6 @@ export function BookmarksPage() {
   const [typeFilter, setTypeFilter] = useState<BookmarkType | 'all'>('all')
   const [readFilter, setReadFilter] = useState<'all' | 'unread' | 'read'>('all')
 
-  useEffect(() => { fetchBookmarks() }, [fetchBookmarks])
 
   const filtered = bookmarks.filter(b => {
     const q = search.toLowerCase()

@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { itemsApi, journalApi, habitsApi, goalsApi, notesApi, expensesApi, occasionsApi, healthApi, bookmarksApi } from '@/lib/supabase'
+import { itemsApi, journalApi, habitsApi, goalsApi, notesApi, expensesApi, occasionsApi, healthApi, bookmarksApi, tasksApi, weeklyReviewsApi } from '@/lib/supabase'
 import { calculateStreak, today, getLast30Days } from '@/utils/helpers'
 import type {
   Item, ItemInsert, ItemUpdate,
@@ -11,6 +11,8 @@ import type {
   Occasion, OccasionInsert, OccasionUpdate,
   DailyHealth, HealthInsert, HealthUpdate,
   Bookmark, BookmarkInsert, BookmarkUpdate,
+  Task, TaskInsert, TaskUpdate,
+  WeeklyReview, WeeklyReviewInsert,
   FilterState,
 } from '@/types'
 
@@ -616,3 +618,121 @@ export const useBookmarksStore = create<BookmarksStore>((set, get) => ({
     set(s => ({ bookmarks: s.bookmarks.map(b => b.id === id ? updated : b) }))
   },
 }))
+
+// ─── Tasks Store ─────────────────────────────────────────────
+interface TasksStore {
+  tasks: Task[]
+  isLoading: boolean
+  fetchTasks: () => Promise<void>
+  addTask: (t: TaskInsert) => Promise<Task>
+  updateTask: (id: string, u: TaskUpdate) => Promise<Task>
+  deleteTask: (id: string) => Promise<void>
+  toggleTask: (id: string) => Promise<void>
+  getTodayTasks: () => Task[]
+  getOverdue: () => Task[]
+}
+
+export const useTasksStore = create<TasksStore>((set, get) => ({
+  tasks: [],
+  isLoading: false,
+
+  fetchTasks: async () => {
+    set({ isLoading: true })
+    try {
+      const tasks = await tasksApi.getAll()
+      set({ tasks, isLoading: false })
+    } catch { set({ isLoading: false }) }
+  },
+
+  addTask: async (t: TaskInsert) => {
+    const created = await tasksApi.create(t)
+    set(s => ({ tasks: [created, ...s.tasks] }))
+    return created
+  },
+
+  updateTask: async (id: string, u: TaskUpdate) => {
+    const updated = await tasksApi.update(id, u)
+    set(s => ({ tasks: s.tasks.map(t => t.id === id ? updated : t) }))
+    return updated
+  },
+
+  deleteTask: async (id: string) => {
+    await tasksApi.delete(id)
+    set(s => ({ tasks: s.tasks.filter(t => t.id !== id) }))
+  },
+
+  toggleTask: async (id: string) => {
+    const task = get().tasks.find(t => t.id === id)
+    if (!task) return
+    const isDone = task.status === 'done'
+    const updated = await tasksApi.update(id, {
+      status: isDone ? 'todo' : 'done',
+      completed_at: isDone ? null : new Date().toISOString(),
+    })
+    set(s => ({ tasks: s.tasks.map(t => t.id === id ? updated : t) }))
+  },
+
+  getTodayTasks: () => {
+    const today = new Date().toISOString().split('T')[0]
+    return get().tasks.filter(t =>
+      t.status === 'todo' && (
+        !t.due_date || t.due_date <= today
+      )
+    )
+  },
+
+  getOverdue: () => {
+    const today = new Date().toISOString().split('T')[0]
+    return get().tasks.filter(t =>
+      t.status === 'todo' && t.due_date && t.due_date < today
+    )
+  },
+}))
+
+// ─── Weekly Review Store ──────────────────────────────────────
+interface WeeklyReviewStore {
+  reviews: WeeklyReview[]
+  isLoading: boolean
+  fetchReviews: () => Promise<void>
+  upsertReview: (r: WeeklyReviewInsert) => Promise<WeeklyReview>
+  getCurrentWeekReview: () => WeeklyReview | undefined
+}
+
+export const useWeeklyReviewStore = create<WeeklyReviewStore>((set, get) => ({
+  reviews: [],
+  isLoading: false,
+
+  fetchReviews: async () => {
+    set({ isLoading: true })
+    try {
+      const reviews = await weeklyReviewsApi.getAll()
+      set({ reviews, isLoading: false })
+    } catch { set({ isLoading: false }) }
+  },
+
+  upsertReview: async (r: WeeklyReviewInsert) => {
+    const saved = await weeklyReviewsApi.upsert(r)
+    set(s => {
+      const exists = s.reviews.find(x => x.week_start === saved.week_start)
+      return {
+        reviews: exists
+          ? s.reviews.map(x => x.week_start === saved.week_start ? saved : x)
+          : [saved, ...s.reviews]
+      }
+    })
+    return saved
+  },
+
+  getCurrentWeekReview: () => {
+    const weekStart = getWeekStart()
+    return get().reviews.find(r => r.week_start === weekStart)
+  },
+}))
+
+function getWeekStart(): string {
+  const d = new Date()
+  const day = d.getDay()
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1) // Monday
+  const monday = new Date(d.setDate(diff))
+  return monday.toISOString().split('T')[0]
+}

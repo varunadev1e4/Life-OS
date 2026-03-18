@@ -27,9 +27,10 @@ const TooltipStyle = {
 export function AnalyticsPage() {
   const { items, fetchItems, isLoading: itemsLoading } = useItemsStore()
   const { logs: journalLogs, fetchLogs: fetchJournal } = useJournalStore()
-  const { getHabitsWithStats, fetchHabits, fetchLogs: fetchHabitLogs } = useHabitsStore()
+  const { getHabitsWithStats, fetchHabits, fetchLogs: fetchHabitLogs, habits } = useHabitsStore()
   const { goals, fetchGoals } = useGoalsStore()
   const [activeTab, setActiveTab] = useState<'overview' | 'mood' | 'habits' | 'library' | 'year'>('overview')
+
 
   useEffect(() => {
     fetchItems()
@@ -37,7 +38,7 @@ export function AnalyticsPage() {
     fetchHabits()
     fetchHabitLogs(60)
     fetchGoals()
-  }, [fetchItems, fetchJournal, fetchHabits, fetchHabitLogs, fetchGoals])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const habitsWithStats = getHabitsWithStats()
   const isLoading = itemsLoading

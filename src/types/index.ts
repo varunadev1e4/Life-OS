@@ -275,3 +275,39 @@ export interface Bookmark {
 }
 export type BookmarkInsert = Omit<Bookmark, 'id' | 'created_at' | 'updated_at'>
 export type BookmarkUpdate  = Partial<BookmarkInsert>
+
+// ── Tasks ─────────────────────────────────────────────────────
+export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent'
+export type TaskStatus   = 'todo' | 'done'
+
+export interface Task {
+  id: string
+  title: string
+  notes: string | null
+  priority: TaskPriority
+  status: TaskStatus
+  due_date: string | null
+  completed_at: string | null
+  order_index: number
+  tags: string[]
+  created_at: string
+  updated_at: string
+}
+export type TaskInsert = Omit<Task, 'id' | 'created_at' | 'updated_at'>
+export type TaskUpdate  = Partial<TaskInsert>
+
+// ── Weekly Review ─────────────────────────────────────────────
+export interface WeeklyReview {
+  id: string
+  week_start: string
+  week_end: string
+  reflection: string | null
+  highlights: string | null
+  improvements: string | null
+  next_week_focus: string | null
+  rating: number | null
+  created_at: string
+  updated_at: string
+}
+export type WeeklyReviewInsert = Omit<WeeklyReview, 'id' | 'created_at' | 'updated_at'>
+export type WeeklyReviewUpdate  = Partial<WeeklyReviewInsert>

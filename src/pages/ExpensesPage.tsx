@@ -36,6 +36,7 @@ const getCat = (v: string) => CATEGORIES.find(c => c.value === v) || CATEGORIES[
 // ── Main Page ─────────────────────────────────────────────────
 export function ExpensesPage() {
   const { expenses, isLoading, fetchExpenses, addExpense, updateExpense, deleteExpense, getMonthlyTotal, getCategoryTotals } = useExpensesStore()
+  useEffect(() => { fetchExpenses() }, []) // eslint-disable-line
   const { success, error: showError } = useToast()
 
   const [viewDate, setViewDate] = useState(new Date())
@@ -46,7 +47,6 @@ export function ExpensesPage() {
   const [catFilter, setCatFilter] = useState<ExpenseCategory | 'all'>('all')
   const [view, setView] = useState<'list' | 'calendar'>('list')
 
-  useEffect(() => { fetchExpenses() }, [fetchExpenses])
 
   const year  = viewDate.getFullYear()
   const month = viewDate.getMonth() + 1

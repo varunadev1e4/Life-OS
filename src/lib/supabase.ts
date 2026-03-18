@@ -10,7 +10,9 @@ import type {
   Expense, ExpenseInsert, ExpenseUpdate,
   Occasion, OccasionInsert, OccasionUpdate,
   DailyHealth, HealthInsert, HealthUpdate,
-  Bookmark, BookmarkInsert, BookmarkUpdate
+  Bookmark, BookmarkInsert, BookmarkUpdate,
+  Task, TaskInsert, TaskUpdate,
+  WeeklyReview, WeeklyReviewInsert, WeeklyReviewUpdate
 } from '@/types'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -348,6 +350,62 @@ export const notesApi = {
 }
 
 
+
+
+// ============================================================
+// TASKS API
+// ============================================================
+export const tasksApi = {
+  async getAll() {
+    const { data, error } = await supabase
+      .from('tasks').select('*')
+      .order('status', { ascending: true })
+      .order('order_index', { ascending: true })
+      .order('created_at', { ascending: false })
+    if (error) throw new Error(error.message)
+    return data as Task[]
+  },
+  async create(t: TaskInsert) {
+    const { data, error } = await supabase.from('tasks').insert(t).select().single()
+    if (error) throw new Error(error.message)
+    return data as Task
+  },
+  async update(id: string, u: TaskUpdate) {
+    const { data, error } = await supabase.from('tasks').update(u).eq('id', id).select().single()
+    if (error) throw new Error(error.message)
+    return data as Task
+  },
+  async delete(id: string) {
+    const { error } = await supabase.from('tasks').delete().eq('id', id)
+    if (error) throw new Error(error.message)
+  },
+}
+
+// ============================================================
+// WEEKLY REVIEWS API
+// ============================================================
+export const weeklyReviewsApi = {
+  async getAll() {
+    const { data, error } = await supabase
+      .from('weekly_reviews').select('*')
+      .order('week_start', { ascending: false })
+    if (error) throw new Error(error.message)
+    return data as WeeklyReview[]
+  },
+  async getByWeek(weekStart: string) {
+    const { data, error } = await supabase
+      .from('weekly_reviews').select('*')
+      .eq('week_start', weekStart).maybeSingle()
+    if (error) throw new Error(error.message)
+    return data as WeeklyReview | null
+  },
+  async upsert(r: WeeklyReviewInsert) {
+    const { data, error } = await supabase
+      .from('weekly_reviews').upsert(r, { onConflict: 'week_start' }).select().single()
+    if (error) throw new Error(error.message)
+    return data as WeeklyReview
+  },
+}
 
 // ============================================================
 // HEALTH API

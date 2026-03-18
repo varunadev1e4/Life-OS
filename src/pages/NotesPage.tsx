@@ -51,6 +51,7 @@ const NOTE_COLORS = NOTE_COLOR_KEYS.map(k => ({
 
 export function NotesPage() {
   const { notes, isLoading, fetchNotes, addNote, updateNote, deleteNote, pinNote, archiveNote } = useNotesStore()
+  useEffect(() => { fetchNotes() }, []) // eslint-disable-line
   const { success, error: showError } = useToast()
   const [search, setSearch] = useState('')
   const [activeTag, setActiveTag] = useState<string | null>(null)
@@ -59,7 +60,6 @@ export function NotesPage() {
   const [editingNote, setEditingNote] = useState<Note | null>(null)
   const [isCreating, setIsCreating] = useState(false)
 
-  useEffect(() => { fetchNotes() }, [fetchNotes])
 
   // All unique tags across all notes
   const allTags = [...new Set(notes.flatMap(n => n.tags))].sort()

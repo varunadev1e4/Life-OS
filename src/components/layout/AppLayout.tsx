@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, Library, BookOpen, CheckSquare,
   Target, BarChart2, Settings, LogOut, ChevronRight, StickyNote, Sun, Moon,
-  Wallet, PartyPopper, Heart, Bookmark,
+  Wallet, PartyPopper, Heart, Bookmark, ListTodo, ClipboardList, Brain,
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useTheme } from '@/context/ThemeContext'
@@ -22,12 +22,16 @@ const NAV = [
   { path: '/occasions', label: 'Occasions', Icon: PartyPopper,     color: '#f472b6' },
   { path: '/health',    label: 'Health',    Icon: Heart,           color: '#f87171' },
   { path: '/bookmarks', label: 'Bookmarks', Icon: Bookmark,        color: '#38bdf8' },
-  { path: '/analytics', label: 'Analytics', Icon: BarChart2,       color: '#a78bfa' },
+  { path: '/tasks',     label: 'Tasks',     Icon: ListTodo,        color: '#34d399' },
+  { path: '/review',    label: 'Review',    Icon: ClipboardList,   color: '#f472b6' },
+  { path: '/insights',  label: 'Insights',  Icon: Brain,           color: '#a78bfa' },
+  { path: '/analytics', label: 'Analytics', Icon: BarChart2,       color: '#60a5fa' },
   { path: '/settings',  label: 'Settings',  Icon: Settings,        color: '#a8a8c0' },
 ]
 
 // Bottom nav shows 5 key pages on mobile
-const MOBILE_NAV = [NAV[0], NAV[1], NAV[2], NAV[4], NAV[5]] // Dashboard, Library, Journal, Goals, Notes
+// Dashboard, Library, Journal, Tasks, Habits
+const MOBILE_NAV = [NAV[0], NAV[1], NAV[2], NAV[4], NAV[12]]
 
 
 function ThemeToggleButton() {
@@ -90,7 +94,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         </div>
 
         {/* Nav items */}
-        <nav className="flex-1 py-3 flex flex-col gap-0.5 px-2 overflow-hidden">
+        <nav className="flex-1 py-3 flex flex-col gap-0.5 px-2 overflow-y-auto no-scrollbar">
           {NAV.map(({ path, label, Icon, color }) => {
             const isActive = path === '/'
               ? location.pathname === '/'

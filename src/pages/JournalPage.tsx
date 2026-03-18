@@ -12,6 +12,7 @@ import type { JournalLog } from '@/types'
 
 export function JournalPage() {
   const { logs, isLoading, fetchLogs, deleteLog } = useJournalStore()
+  useEffect(() => { fetchLogs(100) }, []) // eslint-disable-line
   const { success, error } = useToast()
   const [showForm, setShowForm] = useState(false)
   const [editEntry, setEditEntry] = useState<JournalLog | null>(null)
@@ -20,7 +21,6 @@ export function JournalPage() {
   const [viewDate, setViewDate] = useState(new Date())
   const [view, setView] = useState<'list' | 'calendar'>('list')
 
-  useEffect(() => { fetchLogs(100) }, [fetchLogs])
 
   const todayStr = today()
   const hasTodayEntry = logs.some(l => l.date === todayStr)

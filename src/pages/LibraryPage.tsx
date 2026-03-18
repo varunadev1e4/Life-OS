@@ -24,15 +24,15 @@ export function LibraryPage() {
   const [searchParams] = useSearchParams()
   const [showForm, setShowForm] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
-  const { items, isLoading, fetchItems, filters, setFilters, resetFilters, getFilteredItems, deleteItem } = useItemsStore()
+  const { items, isLoading, filters, setFilters, resetFilters, getFilteredItems, deleteItem } = useItemsStore()
   const { success, error } = useToast()
 
+
+  // Apply URL param filters on mount
   useEffect(() => {
-    fetchItems()
-    // Apply URL params
     const status = searchParams.get('status')
     if (status) setFilters({ status: status as ItemStatus })
-  }, [fetchItems, searchParams, setFilters])
+  }, [searchParams, setFilters])
 
   const filtered = getFilteredItems()
   const hasActiveFilters = filters.type !== 'all' || filters.status !== 'all' || filters.rating !== null || filters.tags.length > 0 || filters.search

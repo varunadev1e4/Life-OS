@@ -14,10 +14,10 @@ const STEPS_GOAL  = 10000
 
 export function HealthPage() {
   const { entries, isLoading, fetchRecent, upsertEntry, getToday } = useHealthStore()
+  useEffect(() => { fetchRecent(14) }, []) // eslint-disable-line
   const { success, error: showError } = useToast()
   const [saving, setSaving] = useState<string | null>(null)
 
-  useEffect(() => { fetchRecent(14) }, [fetchRecent])
 
   const todayEntry = getToday()
 

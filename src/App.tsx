@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/context/AuthContext'
+import { useAppData } from '@/hooks/useAppData'
 import { ThemeProvider } from '@/context/ThemeContext'
 import { ToastProvider } from '@/context/ToastContext'
 import { ToastContainer } from '@/components/ui/ToastContainer'
@@ -25,9 +26,15 @@ import { ExpensesPage } from '@/pages/ExpensesPage'
 import { OccasionsPage } from '@/pages/OccasionsPage'
 import { HealthPage } from '@/pages/HealthPage'
 import { BookmarksPage } from '@/pages/BookmarksPage'
+import { TasksPage } from '@/pages/TasksPage'
+import { WeeklyReviewPage } from '@/pages/WeeklyReviewPage'
+import { InsightsPage } from '@/pages/InsightsPage'
 
 function AppRoutes() {
   const { isAuthenticated, isLoading, hasSetup } = useAuth()
+
+  // Load all data once after login — pages read from stores directly
+  useAppData(isAuthenticated)
 
   if (isLoading) return <LoadingScreen />
   if (!isAuthenticated) return <PinGate isSetup={hasSetup} />
@@ -48,6 +55,9 @@ function AppRoutes() {
         <Route path="/occasions" element={<OccasionsPage />} />
         <Route path="/health" element={<HealthPage />} />
         <Route path="/bookmarks" element={<BookmarksPage />} />
+        <Route path="/tasks" element={<TasksPage />} />
+        <Route path="/review" element={<WeeklyReviewPage />} />
+        <Route path="/insights" element={<InsightsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AppLayout>

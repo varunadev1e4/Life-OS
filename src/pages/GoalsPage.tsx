@@ -26,13 +26,13 @@ const STATUS_COLORS: Record<string, string> = {
 
 export function GoalsPage() {
   const { goals, isLoading, fetchGoals, updateGoal } = useGoalsStore()
+  useEffect(() => { fetchGoals() }, []) // eslint-disable-line
   const { error } = useToast()
   const [showForm, setShowForm] = useState(false)
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null)
   const [editGoal, setEditGoal] = useState<Goal | null>(null)
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'completed'>('active')
 
-  useEffect(() => { fetchGoals() }, [fetchGoals])
 
   const filtered = goals.filter(g => statusFilter === 'all' ? true : g.status === statusFilter)
   const activeCount = goals.filter(g => g.status === 'active').length

@@ -54,6 +54,7 @@ function getUrgencyLabel(days: number): string {
 // ── Main Page ─────────────────────────────────────────────────
 export function OccasionsPage() {
   const { occasions, isLoading, fetchOccasions, addOccasion, updateOccasion, deleteOccasion, getUpcoming } = useOccasionsStore()
+  useEffect(() => { fetchOccasions() }, []) // eslint-disable-line
   const { success, error: showError } = useToast()
 
   const [showForm, setShowForm] = useState(false)
@@ -61,7 +62,6 @@ export function OccasionsPage() {
   const [deleteTarget, setDeleteTarget] = useState<Occasion | null>(null)
   const [tab, setTab] = useState<'upcoming' | 'all'>('upcoming')
 
-  useEffect(() => { fetchOccasions() }, [fetchOccasions])
 
   const upcoming = getUpcoming(60)
   const soonest  = upcoming[0]
