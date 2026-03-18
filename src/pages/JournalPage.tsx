@@ -67,11 +67,9 @@ export function JournalPage() {
                 </button>
               ))}
             </div>
-            {!hasTodayEntry && (
-              <Button variant="primary" size="sm" leftIcon={<Plus size={14} />} onClick={() => setShowForm(true)}>
-                Write Today
-              </Button>
-            )}
+            <Button variant="primary" size="sm" leftIcon={<Plus size={14} />} onClick={() => setShowForm(true)}>
+              {hasTodayEntry ? 'New Entry' : 'Write Today'}
+            </Button>
           </div>
         }
       />
@@ -132,22 +130,34 @@ export function JournalPage() {
       ) : (
         /* List view */
         <div className="space-y-4">
-          {/* Today's entry CTA */}
-          {hasTodayEntry && logs[0]?.date === todayStr ? null : !hasTodayEntry && (
-            <motion.button
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              onClick={() => setShowForm(true)}
-              className="w-full p-4 rounded-xl border-2 border-dashed border-[rgba(124,106,247,0.3)] hover:border-[rgba(124,106,247,0.5)] hover:bg-[rgba(124,106,247,0.04)] transition-all flex items-center gap-3 group"
-            >
-              <span className="text-2xl">📝</span>
-              <div className="text-left">
-                <p className="text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--accent-violet)] transition-colors">Write today's entry</p>
-                <p className="text-xs text-[var(--text-secondary)]">{format(new Date(), 'EEEE, MMMM d')}</p>
-              </div>
-              <Plus size={16} className="ml-auto text-[var(--accent-violet)]" />
-            </motion.button>
-          )}
+          {/* Today banner — always visible */}
+          <motion.button
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            onClick={() => {
+              const todayEntry = logs.find(l => l.date === todayStr)
+              if (todayEntry) setEditEntry(todayEntry)
+              else setShowForm(true)
+            }}
+            className="w-full p-4 rounded-xl border transition-all flex items-center gap-3 group"
+            style={{
+              borderColor: hasTodayEntry ? 'rgba(52,211,153,0.3)' : 'rgba(124,106,247,0.3)',
+              background: hasTodayEntry ? 'rgba(52,211,153,0.04)' : 'rgba(124,106,247,0.04)',
+            }}
+          >
+            <span className="text-2xl">{hasTodayEntry ? '✅' : '📝'}</span>
+            <div className="text-left flex-1">
+              <p className="text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--accent-violet)] transition-colors">
+                {hasTodayEntry ? "Today's entry written" : "Write today's entry"}
+              </p>
+              <p className="text-xs text-[var(--text-secondary)]">{format(new Date(), 'EEEE, MMMM d')}</p>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs font-medium shrink-0"
+              style={{ color: hasTodayEntry ? 'var(--accent-emerald)' : 'var(--accent-violet)' }}>
+              {hasTodayEntry ? 'Edit' : 'Write'}
+              <Plus size={14} />
+            </div>
+          </motion.button>
 
           {isLoading ? (
             <div className="space-y-3">
