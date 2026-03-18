@@ -26,7 +26,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 export function GoalsPage() {
   const { goals, isLoading, fetchGoals, updateGoal } = useGoalsStore()
-  const { success, error } = useToast()
+  const { error } = useToast()
   const [showForm, setShowForm] = useState(false)
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null)
   const [editGoal, setEditGoal] = useState<Goal | null>(null)

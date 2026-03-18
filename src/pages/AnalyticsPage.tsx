@@ -27,7 +27,7 @@ const TooltipStyle = {
 export function AnalyticsPage() {
   const { items, fetchItems, isLoading: itemsLoading } = useItemsStore()
   const { logs: journalLogs, fetchLogs: fetchJournal } = useJournalStore()
-  const { habits, getHabitsWithStats, fetchHabits, fetchLogs: fetchHabitLogs } = useHabitsStore()
+  const { getHabitsWithStats, fetchHabits, fetchLogs: fetchHabitLogs } = useHabitsStore()
   const { goals, fetchGoals } = useGoalsStore()
   const [activeTab, setActiveTab] = useState<'overview' | 'mood' | 'habits' | 'library'>('overview')
 

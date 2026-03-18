@@ -84,7 +84,7 @@ export const useItemsStore = create<ItemsStore>((set, get) => ({
       filtered = filtered.filter(i => i.status === filters.status)
     }
     if (filters.rating !== null) {
-      filtered = filtered.filter(i => i.rating !== null && i.rating >= (filters.rating ?? 0))
+      filtered = filtered.filter(i => i.rating != null && i.rating >= (filters.rating ?? 0))
     }
     if (filters.tags.length > 0) {
       filtered = filtered.filter(i => filters.tags.some(t => i.tags.includes(t)))

@@ -36,7 +36,7 @@ function HabitHistory({ habitId, color, last7 }: { habitId: string; color: strin
 
 export function HabitsPage() {
   const { habits, isLoading, fetchHabits, fetchLogs, getHabitsWithStats, toggleHabit, getTodayCompletionRate } = useHabitsStore()
-  const { success, error } = useToast()
+  const { error } = useToast()
   const [showForm, setShowForm] = useState(false)
   const [editHabit, setEditHabit] = useState<HabitWithStreak | null>(null)
   const [toggling, setToggling] = useState<string | null>(null)

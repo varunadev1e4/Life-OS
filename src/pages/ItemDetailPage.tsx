@@ -7,7 +7,6 @@ import { useToast } from '@/context/ToastContext'
 import { Button, ProgressBar, ConfirmDialog, Skeleton } from '@/components/ui'
 import { ItemFormModal } from '@/components/library/ItemFormModal'
 import { ITEM_TYPE_CONFIG, ITEM_STATUS_CONFIG, calculateProgress, formatDate, getRatingColor } from '@/utils/helpers'
-import type { Item } from '@/types'
 
 export function ItemDetailPage() {
   const { id } = useParams<{ id: string }>()
