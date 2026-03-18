@@ -1,11 +1,12 @@
 import { create } from 'zustand'
-import { itemsApi, journalApi, habitsApi, goalsApi } from '@/lib/supabase'
+import { itemsApi, journalApi, habitsApi, goalsApi, notesApi } from '@/lib/supabase'
 import { calculateStreak, today, getLast30Days } from '@/utils/helpers'
 import type {
   Item, ItemInsert, ItemUpdate,
   JournalLog, JournalInsert, JournalUpdate,
   Habit, HabitInsert, HabitUpdate, HabitWithStreak, HabitLog,
   Goal, GoalInsert, GoalUpdate,
+  Note, NoteInsert, NoteUpdate,
   FilterState,
 } from '@/types'
 
@@ -321,4 +322,64 @@ export const useGoalsStore = create<GoalsStore>((set, get) => ({
   },
 
   getActiveGoals: () => get().goals.filter(g => g.status === 'active'),
+}))
+
+// ─── Notes Store ────────────────────────────────────────────
+interface NotesStore {
+  notes: Note[]
+  isLoading: boolean
+  error: string | null
+  fetchNotes: () => Promise<void>
+  addNote: (note: NoteInsert) => Promise<Note>
+  updateNote: (id: string, updates: NoteUpdate) => Promise<Note>
+  deleteNote: (id: string) => Promise<void>
+  pinNote: (id: string, pinned: boolean) => Promise<void>
+  archiveNote: (id: string) => Promise<void>
+}
+
+export const useNotesStore = create<NotesStore>((set, get) => ({
+  notes: [],
+  isLoading: false,
+  error: null,
+
+  fetchNotes: async () => {
+    set({ isLoading: true, error: null })
+    try {
+      const notes = await notesApi.getAll()
+      set({ notes, isLoading: false })
+    } catch (err) {
+      set({ error: (err as Error).message, isLoading: false })
+    }
+  },
+
+  addNote: async (note: NoteInsert) => {
+    const created = await notesApi.create(note)
+    set(s => ({ notes: [created, ...s.notes] }))
+    return created
+  },
+
+  updateNote: async (id: string, updates: NoteUpdate) => {
+    const updated = await notesApi.update(id, updates)
+    set(s => ({ notes: s.notes.map(n => n.id === id ? updated : n) }))
+    return updated
+  },
+
+  deleteNote: async (id: string) => {
+    await notesApi.delete(id)
+    set(s => ({ notes: s.notes.filter(n => n.id !== id) }))
+  },
+
+  pinNote: async (id: string, pinned: boolean) => {
+    const updated = await notesApi.update(id, { is_pinned: pinned })
+    set(s => ({
+      notes: s.notes
+        .map(n => n.id === id ? updated : n)
+        .sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0))
+    }))
+  },
+
+  archiveNote: async (id: string) => {
+    await notesApi.update(id, { is_archived: true })
+    set(s => ({ notes: s.notes.filter(n => n.id !== id) }))
+  },
 }))

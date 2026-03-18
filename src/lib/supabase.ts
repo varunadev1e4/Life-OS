@@ -5,7 +5,8 @@ import type {
   Habit, HabitInsert, HabitUpdate,
   HabitLog,
   Goal, GoalInsert, GoalUpdate,
-  Tag, AppSettings
+  Tag, AppSettings,
+  Note, NoteInsert, NoteUpdate
 } from '@/types'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -286,6 +287,59 @@ export const tagsApi = {
       .single()
     if (error) throw error
     return data as Tag
+  },
+}
+
+
+// ============================================================
+// NOTES API
+// ============================================================
+export const notesApi = {
+  async getAll() {
+    const { data, error } = await supabase
+      .from('notes')
+      .select('*')
+      .eq('is_archived', false)
+      .order('is_pinned', { ascending: false })
+      .order('updated_at', { ascending: false })
+    if (error) throw new Error(error.message)
+    return data as Note[]
+  },
+
+  async create(note: NoteInsert) {
+    const { data, error } = await supabase
+      .from('notes')
+      .insert(note)
+      .select()
+      .single()
+    if (error) throw new Error(error.message)
+    return data as Note
+  },
+
+  async update(id: string, updates: NoteUpdate) {
+    const { data, error } = await supabase
+      .from('notes')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single()
+    if (error) throw new Error(error.message)
+    return data as Note
+  },
+
+  async delete(id: string) {
+    const { error } = await supabase.from('notes').delete().eq('id', id)
+    if (error) throw new Error(error.message)
+  },
+
+  async getArchived() {
+    const { data, error } = await supabase
+      .from('notes')
+      .select('*')
+      .eq('is_archived', true)
+      .order('updated_at', { ascending: false })
+    if (error) throw new Error(error.message)
+    return data as Note[]
   },
 }
 

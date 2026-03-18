@@ -189,3 +189,18 @@ export interface FilterState {
   sortBy: 'created_at' | 'updated_at' | 'title' | 'rating' | 'completed_at'
   sortOrder: 'asc' | 'desc'
 }
+
+export interface Note {
+  id: string
+  title: string | null
+  content: string
+  color: string
+  is_pinned: boolean
+  is_archived: boolean
+  tags: string[]
+  created_at: string
+  updated_at: string
+}
+
+export type NoteInsert = Omit<Note, 'id' | 'created_at' | 'updated_at'>
+export type NoteUpdate = Partial<NoteInsert>

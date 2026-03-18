@@ -3,7 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, Library, BookOpen, CheckSquare,
-  Target, BarChart2, Settings, LogOut, ChevronRight,
+  Target, BarChart2, Settings, LogOut, ChevronRight, StickyNote,
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { QuickAddFAB } from '@/components/ui/QuickAddFAB'
@@ -14,12 +14,13 @@ const NAV = [
   { path: '/journal',   label: 'Journal',   Icon: BookOpen,        color: '#34d399' },
   { path: '/habits',    label: 'Habits',    Icon: CheckSquare,     color: '#f59e0b' },
   { path: '/goals',     label: 'Goals',     Icon: Target,          color: '#f87171' },
+  { path: '/notes',     label: 'Notes',     Icon: StickyNote,      color: '#fbbf24' },
   { path: '/analytics', label: 'Analytics', Icon: BarChart2,       color: '#a78bfa' },
   { path: '/settings',  label: 'Settings',  Icon: Settings,        color: '#a8a8c0' },
 ]
 
-// Bottom nav only shows these 5 on mobile
-const MOBILE_NAV = NAV.slice(0, 5)
+// Bottom nav shows 5 key pages on mobile
+const MOBILE_NAV = [NAV[0], NAV[1], NAV[2], NAV[4], NAV[5]] // Dashboard, Library, Journal, Goals, Notes
 
 interface AppLayoutProps { children: ReactNode }
 

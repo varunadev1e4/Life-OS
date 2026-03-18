@@ -4,7 +4,7 @@ import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend
 } from 'recharts'
-import { format, parseISO, eachMonthOfInterval, subMonths } from 'date-fns'
+import { format, parseISO, eachMonthOfInterval, subMonths, eachDayOfInterval, startOfYear, endOfYear, getDay, isToday, parseISO as parseDateISO } from 'date-fns'
 import { useItemsStore, useJournalStore, useHabitsStore, useGoalsStore } from '@/lib/store'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Skeleton } from '@/components/ui'
@@ -29,7 +29,7 @@ export function AnalyticsPage() {
   const { logs: journalLogs, fetchLogs: fetchJournal } = useJournalStore()
   const { getHabitsWithStats, fetchHabits, fetchLogs: fetchHabitLogs } = useHabitsStore()
   const { goals, fetchGoals } = useGoalsStore()
-  const [activeTab, setActiveTab] = useState<'overview' | 'mood' | 'habits' | 'library'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'mood' | 'habits' | 'library' | 'year'>('overview')
 
   useEffect(() => {
     fetchItems()
@@ -115,7 +115,7 @@ export function AnalyticsPage() {
     }))
   }, [goals])
 
-  const TABS = ['overview', 'library', 'mood', 'habits'] as const
+  const TABS = ['overview', 'library', 'mood', 'habits', 'year'] as const
 
   return (
     <div className="p-4 sm:p-6 max-w-6xl mx-auto">
@@ -364,8 +364,193 @@ export function AnalyticsPage() {
               )}
             </>
           )}
+
+          {/* YEAR IN PIXELS TAB */}
+          {activeTab === 'year' && (
+            <YearInPixels journalLogs={journalLogs} />
+          )}
         </motion.div>
       )}
+    </div>
+  )
+}
+
+
+// ── Year in Pixels ────────────────────────────────────────────
+interface YIPProps {
+  journalLogs: import('@/types').JournalLog[]
+}
+
+function YearInPixels({ journalLogs }: YIPProps) {
+  const [year, setYear] = useState(new Date().getFullYear())
+
+  const days = eachDayOfInterval({
+    start: startOfYear(new Date(year, 0, 1)),
+    end: year === new Date().getFullYear() ? new Date() : endOfYear(new Date(year, 0, 1)),
+  })
+
+  const logMap = journalLogs.reduce((acc, l) => {
+    acc[l.date] = l
+    return acc
+  }, {} as Record<string, import('@/types').JournalLog>)
+
+  const getMoodColor = (mood: number | null | undefined) => {
+    if (!mood) return 'var(--bg-overlay)'
+    if (mood >= 9) return '#34d399'
+    if (mood >= 7) return '#38bdf8'
+    if (mood >= 5) return '#7c6af7'
+    if (mood >= 3) return '#f59e0b'
+    return '#f87171'
+  }
+
+  // Pad start with empty cells (start from Monday=0)
+  const firstDayOfWeek = (getDay(days[0]) + 6) % 7 // Mon=0
+  const paddedDays = [...Array(firstDayOfWeek).fill(null), ...days]
+
+  const months = eachMonthOfInterval({
+    start: startOfYear(new Date(year, 0, 1)),
+    end: year === new Date().getFullYear() ? new Date() : endOfYear(new Date(year, 0, 1)),
+  })
+
+  const totalLogged = days.filter(d => logMap[format(d, 'yyyy-MM-dd')]).length
+  const avgMood = (() => {
+    const valid = days.map(d => logMap[format(d, 'yyyy-MM-dd')]?.mood).filter(Boolean) as number[]
+    return valid.length ? (valid.reduce((a, b) => a + b, 0) / valid.length).toFixed(1) : null
+  })()
+
+  return (
+    <div className="space-y-6">
+      {/* Year nav + stats */}
+      <div className="card p-5">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h3 className="font-display font-semibold text-[var(--text-primary)]">{year} in Pixels</h3>
+            <p className="text-sm text-[var(--text-secondary)] mt-0.5">
+              {totalLogged} days logged · {avgMood ? `avg mood ${avgMood}` : 'no mood data yet'}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setYear(y => y - 1)}
+              className="px-3 py-1.5 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors border border-[var(--border)]"
+            >←</button>
+            <span className="text-sm font-semibold text-[var(--text-primary)] min-w-[40px] text-center">{year}</span>
+            <button
+              onClick={() => setYear(y => Math.min(y + 1, new Date().getFullYear()))}
+              disabled={year >= new Date().getFullYear()}
+              className="px-3 py-1.5 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)] transition-colors border border-[var(--border)] disabled:opacity-30"
+            >→</button>
+          </div>
+        </div>
+
+        {/* Month labels */}
+        <div className="overflow-x-auto no-scrollbar">
+          <div style={{ minWidth: 680 }}>
+            <div className="grid mb-1" style={{ gridTemplateColumns: 'repeat(53, 1fr)', gap: 3 }}>
+              {months.map(m => {
+                const weekOfYear = Math.floor(
+                  (eachDayOfInterval({ start: startOfYear(m), end: m }).length - 1 + firstDayOfWeek) / 7
+                )
+                return (
+                  <div
+                    key={m.toString()}
+                    className="text-[9px] text-[var(--text-muted)] font-medium"
+                    style={{ gridColumn: `${weekOfYear + 1} / span 4`, gridRow: 1 }}
+                  >
+                    {format(m, 'MMM')}
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Day labels + grid */}
+            <div className="flex gap-1">
+              <div className="flex flex-col gap-[3px] mr-1 pt-[1px]">
+                {['M', '', 'W', '', 'F', '', 'S'].map((d, i) => (
+                  <div key={i} className="text-[9px] text-[var(--text-muted)] h-[13px] flex items-center">{d}</div>
+                ))}
+              </div>
+              <div className="grid flex-1" style={{ gridTemplateColumns: 'repeat(53, 1fr)', gridTemplateRows: 'repeat(7, 1fr)', gap: 3 }}>
+                {paddedDays.map((day, i) => {
+                  if (!day) return <div key={`pad-${i}`} className="rounded-sm" style={{ width: 13, height: 13 }} />
+                  const dateStr = format(day, 'yyyy-MM-dd')
+                  const log = logMap[dateStr]
+                  const moodColor = getMoodColor(log?.mood)
+                  const isCurrentDay = isToday(day)
+
+                  return (
+                    <motion.div
+                      key={dateStr}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: i * 0.001, duration: 0.1 }}
+                      title={`${format(day, 'MMM d')}${log ? ` · Mood ${log.mood ?? '?'}/10` : ' · No entry'}`}
+                      className="rounded-sm cursor-default transition-transform hover:scale-125"
+                      style={{
+                        width: 13,
+                        height: 13,
+                        background: moodColor,
+                        opacity: log ? 1 : 0.25,
+                        outline: isCurrentDay ? `2px solid var(--accent-violet)` : 'none',
+                        outlineOffset: 1,
+                      }}
+                    />
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Legend */}
+        <div className="flex items-center gap-3 mt-4 flex-wrap">
+          <span className="text-xs text-[var(--text-muted)]">Mood:</span>
+          {[
+            { label: '1-2', color: '#f87171' },
+            { label: '3-4', color: '#f59e0b' },
+            { label: '5-6', color: '#7c6af7' },
+            { label: '7-8', color: '#38bdf8' },
+            { label: '9-10', color: '#34d399' },
+            { label: 'No entry', color: 'var(--bg-overlay)', dim: true },
+          ].map(l => (
+            <div key={l.label} className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-sm" style={{ background: l.color, opacity: l.dim ? 0.4 : 1 }} />
+              <span className="text-xs text-[var(--text-muted)]">{l.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Monthly breakdown */}
+      <div className="card p-5">
+        <h3 className="font-display font-semibold text-sm text-[var(--text-primary)] mb-4">Monthly Mood Average</h3>
+        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+          {months.map(m => {
+            const monthStr = format(m, 'yyyy-MM')
+            const monthLogs = Object.entries(logMap)
+              .filter(([d]) => d.startsWith(monthStr))
+              .map(([, l]) => l)
+            const avg = monthLogs.filter(l => l.mood).length
+              ? (monthLogs.reduce((s, l) => s + (l.mood ?? 0), 0) / monthLogs.filter(l => l.mood).length)
+              : null
+            return (
+              <div key={m.toString()} className="text-center p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)]">
+                <p className="text-xs text-[var(--text-muted)] font-medium">{format(m, 'MMM')}</p>
+                {avg ? (
+                  <>
+                    <p className="text-xl font-display font-bold mt-1" style={{ color: getMoodColor(Math.round(avg)) }}>
+                      {avg.toFixed(1)}
+                    </p>
+                    <p className="text-[10px] text-[var(--text-muted)]">{monthLogs.filter(l => l.mood).length}d</p>
+                  </>
+                ) : (
+                  <p className="text-lg text-[var(--text-muted)] mt-1">—</p>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </div>
     </div>
   )
 }
