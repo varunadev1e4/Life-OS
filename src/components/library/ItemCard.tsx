@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Star } from 'lucide-react'
 import type { Item } from '@/types'
 import { ITEM_TYPE_CONFIG, ITEM_STATUS_CONFIG, calculateProgress, getRatingColor } from '@/utils/helpers'
 import { ProgressBar, ConfirmDialog } from '@/components/ui'
