@@ -5,6 +5,7 @@ import { ArrowRight } from 'lucide-react'
 import { useItemsStore, useJournalStore, useHabitsStore, useGoalsStore } from '@/lib/store'
 import { today, MOOD_EMOJI, MOOD_COLOR, calculateProgress, ITEM_TYPE_CONFIG } from '@/utils/helpers'
 import { Skeleton, ProgressBar } from '@/components/ui'
+import { QuoteOfTheDay } from '@/components/dashboard/QuoteOfTheDay'
 import { format } from 'date-fns'
 
 const staggerContainer = {
@@ -66,6 +67,11 @@ export function DashboardPage() {
       </motion.div>
 
       <motion.div variants={staggerContainer} initial="initial" animate="animate" className="space-y-6">
+        {/* Quote of the Day */}
+        <motion.div variants={fadeUp}>
+          <QuoteOfTheDay />
+        </motion.div>
+
         {/* Quick Stats Row */}
         <motion.div variants={fadeUp} className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[

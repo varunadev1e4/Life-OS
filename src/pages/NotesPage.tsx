@@ -2,21 +2,52 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Search, Pin, Archive, Trash2, X, Tag, Grid3X3, List, Palette } from 'lucide-react'
 import { useNotesStore } from '@/lib/store'
+import { useTheme } from '@/context/ThemeContext'
 import { useToast } from '@/context/ToastContext'
 import { ConfirmDialog } from '@/components/ui'
 import { formatRelative } from '@/utils/helpers'
 import type { Note } from '@/types'
 
-const NOTE_COLORS = [
-  { label: 'Default',  bg: '#1a1a22', border: '#26262e' },
-  { label: 'Green',    bg: '#0f1f0f', border: '#1a3a1a' },
-  { label: 'Purple',   bg: '#1a1030', border: '#2d1f4a' },
-  { label: 'Blue',     bg: '#0a1628', border: '#1a2d4a' },
-  { label: 'Amber',    bg: '#1f1500', border: '#3a2800' },
-  { label: 'Rose',     bg: '#1f0a0a', border: '#3a1515' },
-  { label: 'Teal',     bg: '#001f1f', border: '#003a3a' },
-  { label: 'Slate',    bg: '#111118', border: '#2a2a35' },
-]
+// Color keys stored in DB — resolved at render time based on theme
+const NOTE_COLOR_KEYS = [
+  'default', 'green', 'purple', 'blue', 'amber', 'rose', 'teal', 'slate',
+] as const
+
+type NoteColorKey = typeof NOTE_COLOR_KEYS[number]
+
+const NOTE_COLOR_MAP: Record<NoteColorKey, {
+  label: string
+  dark: { bg: string; border: string }
+  light: { bg: string; border: string }
+}> = {
+  default: { label: 'Default', dark: { bg: '#1a1a22', border: '#26262e' }, light: { bg: '#f5f5f8', border: '#d8d8e4' } },
+  green:   { label: 'Green',   dark: { bg: '#0f1f0f', border: '#1a3a1a' }, light: { bg: '#f0faf0', border: '#b8e6b8' } },
+  purple:  { label: 'Purple',  dark: { bg: '#1a1030', border: '#2d1f4a' }, light: { bg: '#f5f0ff', border: '#c4b0f0' } },
+  blue:    { label: 'Blue',    dark: { bg: '#0a1628', border: '#1a2d4a' }, light: { bg: '#f0f6ff', border: '#b0ccee' } },
+  amber:   { label: 'Amber',   dark: { bg: '#1f1500', border: '#3a2800' }, light: { bg: '#fffbea', border: '#f0d880' } },
+  rose:    { label: 'Rose',    dark: { bg: '#1f0a0a', border: '#3a1515' }, light: { bg: '#fff0f0', border: '#f0b8b8' } },
+  teal:    { label: 'Teal',    dark: { bg: '#001f1f', border: '#003a3a' }, light: { bg: '#f0fafa', border: '#90d8d8' } },
+  slate:   { label: 'Slate',   dark: { bg: '#111118', border: '#2a2a35' }, light: { bg: '#f8f8fc', border: '#d0d0e0' } },
+}
+
+// Legacy hex → key mapping for notes already in DB
+const HEX_TO_KEY: Record<string, NoteColorKey> = {
+  '#1a1a22': 'default', '#0f1f0f': 'green', '#1a1030': 'purple',
+  '#0a1628': 'blue',    '#1f1500': 'amber', '#1f0a0a': 'rose',
+  '#001f1f': 'teal',    '#111118': 'slate',
+}
+
+function resolveNoteColor(colorValue: string, isDark: boolean) {
+  const key = (HEX_TO_KEY[colorValue] || colorValue) as NoteColorKey
+  const config = NOTE_COLOR_MAP[key] || NOTE_COLOR_MAP.default
+  return isDark ? config.dark : config.light
+}
+
+// For the DB we store the key name going forward
+const NOTE_COLORS = NOTE_COLOR_KEYS.map(k => ({
+  label: NOTE_COLOR_MAP[k].label,
+  key: k,
+}))
 
 export function NotesPage() {
   const { notes, isLoading, fetchNotes, addNote, updateNote, deleteNote, pinNote, archiveNote } = useNotesStore()
@@ -234,7 +265,8 @@ function NoteCard({ note, index, layout, onEdit, onPin, onArchive, onDelete }: {
   onArchive: (id: string) => void
   onDelete: (n: Note) => void
 }) {
-  const colorConfig = NOTE_COLORS.find(c => c.bg === note.color) || NOTE_COLORS[0]
+  const { resolvedTheme } = useTheme()
+  const colorConfig = resolveNoteColor(note.color, resolvedTheme === 'dark')
 
   return (
     <motion.div
@@ -243,7 +275,7 @@ function NoteCard({ note, index, layout, onEdit, onPin, onArchive, onDelete }: {
       transition={{ delay: index * 0.03 }}
       onClick={() => onEdit(note)}
       className={`group relative rounded-xl border cursor-pointer transition-all hover:scale-[1.01] hover:shadow-lg ${layout === 'list' ? 'flex items-start gap-4 p-4' : 'p-4 flex flex-col'}`}
-      style={{ background: note.color, borderColor: colorConfig.border }}
+      style={{ background: colorConfig.bg, borderColor: colorConfig.border }}
     >
       {/* Actions */}
       <div
@@ -324,14 +356,15 @@ function NoteEditor({ note, onClose, onSave }: {
 }) {
   const [title, setTitle] = useState(note?.title ?? '')
   const [content, setContent] = useState(note?.content ?? '')
-  const [color, setColor] = useState(note?.color ?? '#1a1a22')
+  const [color, setColor] = useState(note?.color ?? 'default')
   const [tags, setTags] = useState<string[]>(note?.tags ?? [])
   const [tagInput, setTagInput] = useState('')
   const [showColorPicker, setShowColorPicker] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const contentRef = useRef<HTMLTextAreaElement>(null)
 
-  const colorConfig = NOTE_COLORS.find(c => c.bg === color) || NOTE_COLORS[0]
+  const { resolvedTheme } = useTheme()
+  const colorConfig = resolveNoteColor(color, resolvedTheme === 'dark')
 
   useEffect(() => {
     setTimeout(() => contentRef.current?.focus(), 50)
@@ -379,7 +412,7 @@ function NoteEditor({ note, onClose, onSave }: {
         transition={{ type: 'spring', stiffness: 350, damping: 30 }}
         className="relative w-full sm:max-w-xl rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col"
         style={{
-          background: color,
+          background: colorConfig.bg,
           border: `1px solid ${colorConfig.border}`,
           maxHeight: '85dvh',
           boxShadow: '0 24px 64px rgba(0,0,0,0.7)',
@@ -410,19 +443,23 @@ function NoteEditor({ note, onClose, onSave }: {
                     className="absolute top-full left-0 mt-1 p-2 rounded-xl border z-50 grid grid-cols-4 gap-1.5"
                     style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}
                   >
-                    {NOTE_COLORS.map(c => (
-                      <button
-                        key={c.bg}
-                        onClick={() => { setColor(c.bg); setShowColorPicker(false) }}
-                        className="w-7 h-7 rounded-lg border-2 transition-all hover:scale-110"
-                        style={{
-                          background: c.bg,
-                          borderColor: color === c.bg ? 'var(--accent-violet)' : c.border,
-                          boxShadow: color === c.bg ? '0 0 0 2px rgba(124,106,247,0.4)' : 'none',
-                        }}
-                        title={c.label}
-                      />
-                    ))}
+                    {NOTE_COLORS.map(c => {
+                      const resolved = resolveNoteColor(c.key, resolvedTheme === 'dark')
+                      const isSelected = color === c.key
+                      return (
+                        <button
+                          key={c.key}
+                          onClick={() => { setColor(c.key); setShowColorPicker(false) }}
+                          className="w-7 h-7 rounded-lg border-2 transition-all hover:scale-110"
+                          style={{
+                            background: resolved.bg,
+                            borderColor: isSelected ? 'var(--accent-violet)' : resolved.border,
+                            boxShadow: isSelected ? '0 0 0 2px rgba(124,106,247,0.4)' : 'none',
+                          }}
+                          title={c.label}
+                        />
+                      )
+                    })}
                   </motion.div>
                 )}
               </AnimatePresence>

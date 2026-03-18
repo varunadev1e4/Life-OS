@@ -3,9 +3,10 @@ import { NavLink, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, Library, BookOpen, CheckSquare,
-  Target, BarChart2, Settings, LogOut, ChevronRight, StickyNote,
+  Target, BarChart2, Settings, LogOut, ChevronRight, StickyNote, Sun, Moon,
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
+import { useTheme } from '@/context/ThemeContext'
 import { QuickAddFAB } from '@/components/ui/QuickAddFAB'
 
 const NAV = [
@@ -21,6 +22,20 @@ const NAV = [
 
 // Bottom nav shows 5 key pages on mobile
 const MOBILE_NAV = [NAV[0], NAV[1], NAV[2], NAV[4], NAV[5]] // Dashboard, Library, Journal, Goals, Notes
+
+
+function ThemeToggleButton() {
+  const { resolvedTheme, setTheme } = useTheme()
+  return (
+    <button
+      onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+      className="p-2 rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+      title="Toggle theme"
+    >
+      {resolvedTheme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+    </button>
+  )
+}
 
 interface AppLayoutProps { children: ReactNode }
 
@@ -161,10 +176,12 @@ export function AppLayout({ children }: AppLayoutProps) {
             </div>
             <span className="font-display font-bold text-[var(--text-primary)] tracking-tight">Life OS</span>
           </div>
-          {/* Active page label */}
-          <span className="text-xs font-medium text-[var(--text-secondary)] px-2.5 py-1 rounded-lg bg-[var(--bg-elevated)]">
-            {activeNav?.label ?? 'Home'}
-          </span>
+          <div className="flex items-center gap-2">
+            <ThemeToggleButton />
+            <span className="text-xs font-medium text-[var(--text-secondary)] px-2.5 py-1 rounded-lg bg-[var(--bg-elevated)]">
+              {activeNav?.label ?? 'Home'}
+            </span>
+          </div>
         </header>
 
         {/* Page content */}

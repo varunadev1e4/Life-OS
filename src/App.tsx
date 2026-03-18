@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/context/AuthContext'
+import { ThemeProvider } from '@/context/ThemeContext'
 import { ToastProvider } from '@/context/ToastContext'
 import { ToastContainer } from '@/components/ui/ToastContainer'
 import { OfflineBanner } from '@/components/ui/OfflineBanner'
@@ -46,6 +47,7 @@ function AppRoutes() {
 export default function App() {
   return (
     <BrowserRouter>
+      <ThemeProvider>
       <ToastProvider>
         <AuthProvider>
           <OfflineBanner />
@@ -54,6 +56,7 @@ export default function App() {
           <PWAUpdatePrompt />
         </AuthProvider>
       </ToastProvider>
+      </ThemeProvider>
     </BrowserRouter>
   )
 }

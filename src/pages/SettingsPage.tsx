@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
-import { Shield, Download, LogOut, Info, ChevronRight } from 'lucide-react'
+import { useTheme } from '@/context/ThemeContext'
+import { Shield, Download, LogOut, Info, ChevronRight, Sun, Moon, Monitor } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
 import { useItemsStore, useJournalStore, useHabitsStore, useGoalsStore } from '@/lib/store'
@@ -79,6 +80,9 @@ export function SettingsPage() {
       <PageHeader title="Settings" icon="⚙️" />
 
       <div className="space-y-4">
+        {/* Appearance */}
+        <AppearanceSection />
+
         {/* Security */}
         <section>
           <h2 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2 px-1">Security</h2>
@@ -187,6 +191,56 @@ export function SettingsPage() {
         </div>
       </Modal>
     </div>
+  )
+}
+
+
+function AppearanceSection() {
+  const { theme, setTheme } = useTheme()
+
+  const options: { value: 'dark' | 'light' | 'system'; label: string; icon: typeof Sun; desc: string }[] = [
+    { value: 'dark',   label: 'Dark',   icon: Moon,    desc: 'Always dark' },
+    { value: 'light',  label: 'Light',  icon: Sun,     desc: 'Always light' },
+    { value: 'system', label: 'System', icon: Monitor, desc: 'Follows your OS' },
+  ]
+
+  return (
+    <section>
+      <h2 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2 px-1">Appearance</h2>
+      <div className="card p-4">
+        <p className="text-sm font-medium text-[var(--text-primary)] mb-3">Theme</p>
+        <div className="grid grid-cols-3 gap-2">
+          {options.map(({ value, label, icon: Icon, desc }) => {
+            const active = theme === value
+            return (
+              <button
+                key={value}
+                onClick={() => setTheme(value)}
+                className="flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all"
+                style={{
+                  borderColor: active ? 'var(--accent-violet)' : 'var(--border)',
+                  background: active ? 'rgba(124,106,247,0.08)' : 'var(--bg-elevated)',
+                }}
+              >
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  style={{ background: active ? 'rgba(124,106,247,0.15)' : 'var(--bg-overlay)' }}>
+                  <Icon size={18} style={{ color: active ? 'var(--accent-violet)' : 'var(--text-secondary)' }} />
+                </div>
+                <div className="text-center">
+                  <p className="text-xs font-semibold" style={{ color: active ? 'var(--accent-violet)' : 'var(--text-primary)' }}>
+                    {label}
+                  </p>
+                  <p className="text-[10px] text-[var(--text-muted)]">{desc}</p>
+                </div>
+                {active && (
+                  <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent-violet)]" />
+                )}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    </section>
   )
 }
 

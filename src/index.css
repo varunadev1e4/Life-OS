@@ -26,6 +26,52 @@
   --radius-card: 0.75rem;
 }
 
+/* Light mode overrides */
+.light {
+  --bg-base: #f5f5f8;
+  --bg-surface: #ffffff;
+  --bg-elevated: #ededf2;
+  --bg-overlay: #e4e4ec;
+  --border: #d8d8e4;
+  --border-subtle: #e4e4ee;
+  --border-strong: #b8b8cc;
+  --accent-violet: #6355e0;
+  --accent-violet-dim: #4a3fb5;
+  --accent-amber: #d97706;
+  --accent-emerald: #059669;
+  --accent-rose: #e05050;
+  --accent-sky: #0284c7;
+  --text-primary: #111118;
+  --text-secondary: #444460;
+  --text-muted: #8080a0;
+  --text-dim: #b0b0c8;
+  --shadow-card: 0 1px 4px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.06);
+  --shadow-glow: 0 0 20px rgba(99, 85, 224, 0.12);
+}
+
+/* Ensure skeleton works in both modes */
+.light .skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-elevated) 25%,
+    var(--bg-overlay) 50%,
+    var(--bg-elevated) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Light mode card shadow */
+.light .card {
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.06);
+}
+
+/* Light mode scrollbar */
+.light ::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+}
+
+
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
