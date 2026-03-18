@@ -95,7 +95,7 @@ export function PomodoroTimer() {
     return (
       <button
         onClick={() => setVisible(true)}
-        className="fixed bottom-24 lg:bottom-6 left-4 z-30 w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+        className="fixed bottom-24 left-4 lg:bottom-6 lg:left-auto lg:right-20 z-30 w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95"
         style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}
         title="Open Pomodoro Timer"
       >
@@ -109,7 +109,7 @@ export function PomodoroTimer() {
     <motion.div
       initial={{ opacity: 0, scale: 0.9, y: 20 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
-      className="fixed bottom-24 lg:bottom-6 left-4 z-30 rounded-2xl border"
+      className="fixed bottom-24 left-4 lg:bottom-6 lg:left-auto lg:right-20 z-30 rounded-2xl border"
       style={{
         background: 'var(--bg-surface)',
         borderColor: 'var(--border)',
