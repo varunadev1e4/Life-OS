@@ -242,3 +242,36 @@ export interface Occasion {
 }
 export type OccasionInsert = Omit<Occasion, 'id' | 'created_at' | 'updated_at'>
 export type OccasionUpdate  = Partial<OccasionInsert>
+
+// ── Daily Health ─────────────────────────────────────────────
+export interface DailyHealth {
+  id: string
+  date: string
+  water_ml: number
+  steps: number
+  weight_kg: number | null
+  sleep_hours: number | null
+  sleep_quality: number | null
+  created_at: string
+  updated_at: string
+}
+export type HealthInsert = Omit<DailyHealth, 'id' | 'created_at' | 'updated_at'>
+export type HealthUpdate  = Partial<HealthInsert>
+
+// ── Bookmarks ─────────────────────────────────────────────────
+export type BookmarkType = 'article' | 'video' | 'tool' | 'podcast' | 'paper' | 'other'
+export interface Bookmark {
+  id: string
+  url: string
+  title: string
+  description: string | null
+  type: BookmarkType
+  is_read: boolean
+  is_favorite: boolean
+  tags: string[]
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+export type BookmarkInsert = Omit<Bookmark, 'id' | 'created_at' | 'updated_at'>
+export type BookmarkUpdate  = Partial<BookmarkInsert>

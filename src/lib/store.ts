@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { itemsApi, journalApi, habitsApi, goalsApi, notesApi, expensesApi, occasionsApi } from '@/lib/supabase'
+import { itemsApi, journalApi, habitsApi, goalsApi, notesApi, expensesApi, occasionsApi, healthApi, bookmarksApi } from '@/lib/supabase'
 import { calculateStreak, today, getLast30Days } from '@/utils/helpers'
 import type {
   Item, ItemInsert, ItemUpdate,
@@ -9,6 +9,8 @@ import type {
   Note, NoteInsert, NoteUpdate,
   Expense, ExpenseInsert, ExpenseUpdate,
   Occasion, OccasionInsert, OccasionUpdate,
+  DailyHealth, HealthInsert, HealthUpdate,
+  Bookmark, BookmarkInsert, BookmarkUpdate,
   FilterState,
 } from '@/types'
 
@@ -516,5 +518,101 @@ export const useOccasionsStore = create<OccasionsStore>((set, get) => ({
       })
       .filter(o => o._nextDate >= today && o._nextDate <= future)
       .sort((a, b) => a._nextDate.getTime() - b._nextDate.getTime())
+  },
+}))
+
+// ─── Health Store ────────────────────────────────────────────
+interface HealthStore {
+  entries: DailyHealth[]
+  isLoading: boolean
+  fetchRecent: (days?: number) => Promise<void>
+  upsertEntry: (e: HealthInsert) => Promise<DailyHealth>
+  getToday: () => DailyHealth | undefined
+}
+
+export const useHealthStore = create<HealthStore>((set, get) => ({
+  entries: [],
+  isLoading: false,
+
+  fetchRecent: async (days = 30) => {
+    set({ isLoading: true })
+    try {
+      const entries = await healthApi.getRecent(days)
+      set({ entries, isLoading: false })
+    } catch { set({ isLoading: false }) }
+  },
+
+  upsertEntry: async (e: HealthInsert) => {
+    const saved = await healthApi.upsert(e)
+    set(s => {
+      const exists = s.entries.find(x => x.date === saved.date)
+      return {
+        entries: exists
+          ? s.entries.map(x => x.date === saved.date ? saved : x)
+          : [saved, ...s.entries]
+      }
+    })
+    return saved
+  },
+
+  getToday: () => {
+    const t = new Date().toISOString().split('T')[0]
+    return get().entries.find(e => e.date === t)
+  },
+}))
+
+// ─── Bookmarks Store ─────────────────────────────────────────
+interface BookmarksStore {
+  bookmarks: Bookmark[]
+  isLoading: boolean
+  fetchBookmarks: () => Promise<void>
+  addBookmark: (b: BookmarkInsert) => Promise<Bookmark>
+  updateBookmark: (id: string, u: BookmarkUpdate) => Promise<Bookmark>
+  deleteBookmark: (id: string) => Promise<void>
+  toggleRead: (id: string) => Promise<void>
+  toggleFavorite: (id: string) => Promise<void>
+}
+
+export const useBookmarksStore = create<BookmarksStore>((set, get) => ({
+  bookmarks: [],
+  isLoading: false,
+
+  fetchBookmarks: async () => {
+    set({ isLoading: true })
+    try {
+      const bookmarks = await bookmarksApi.getAll()
+      set({ bookmarks, isLoading: false })
+    } catch { set({ isLoading: false }) }
+  },
+
+  addBookmark: async (b: BookmarkInsert) => {
+    const created = await bookmarksApi.create(b)
+    set(s => ({ bookmarks: [created, ...s.bookmarks] }))
+    return created
+  },
+
+  updateBookmark: async (id: string, u: BookmarkUpdate) => {
+    const updated = await bookmarksApi.update(id, u)
+    set(s => ({ bookmarks: s.bookmarks.map(b => b.id === id ? updated : b) }))
+    return updated
+  },
+
+  deleteBookmark: async (id: string) => {
+    await bookmarksApi.delete(id)
+    set(s => ({ bookmarks: s.bookmarks.filter(b => b.id !== id) }))
+  },
+
+  toggleRead: async (id: string) => {
+    const bm = get().bookmarks.find(b => b.id === id)
+    if (!bm) return
+    const updated = await bookmarksApi.update(id, { is_read: !bm.is_read })
+    set(s => ({ bookmarks: s.bookmarks.map(b => b.id === id ? updated : b) }))
+  },
+
+  toggleFavorite: async (id: string) => {
+    const bm = get().bookmarks.find(b => b.id === id)
+    if (!bm) return
+    const updated = await bookmarksApi.update(id, { is_favorite: !bm.is_favorite })
+    set(s => ({ bookmarks: s.bookmarks.map(b => b.id === id ? updated : b) }))
   },
 }))

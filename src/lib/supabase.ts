@@ -8,7 +8,9 @@ import type {
   Tag, AppSettings,
   Note, NoteInsert, NoteUpdate,
   Expense, ExpenseInsert, ExpenseUpdate,
-  Occasion, OccasionInsert, OccasionUpdate
+  Occasion, OccasionInsert, OccasionUpdate,
+  DailyHealth, HealthInsert, HealthUpdate,
+  Bookmark, BookmarkInsert, BookmarkUpdate
 } from '@/types'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -345,6 +347,53 @@ export const notesApi = {
   },
 }
 
+
+
+// ============================================================
+// HEALTH API
+// ============================================================
+export const healthApi = {
+  async getRecent(days = 30) {
+    const since = new Date(); since.setDate(since.getDate() - days)
+    const { data, error } = await supabase.from('daily_health').select('*')
+      .gte('date', since.toISOString().split('T')[0])
+      .order('date', { ascending: false })
+    if (error) throw new Error(error.message)
+    return data as DailyHealth[]
+  },
+  async upsert(entry: HealthInsert) {
+    const { data, error } = await supabase.from('daily_health')
+      .upsert(entry, { onConflict: 'date' }).select().single()
+    if (error) throw new Error(error.message)
+    return data as DailyHealth
+  },
+}
+
+// ============================================================
+// BOOKMARKS API
+// ============================================================
+export const bookmarksApi = {
+  async getAll() {
+    const { data, error } = await supabase.from('bookmarks').select('*')
+      .order('created_at', { ascending: false })
+    if (error) throw new Error(error.message)
+    return data as Bookmark[]
+  },
+  async create(b: BookmarkInsert) {
+    const { data, error } = await supabase.from('bookmarks').insert(b).select().single()
+    if (error) throw new Error(error.message)
+    return data as Bookmark
+  },
+  async update(id: string, updates: BookmarkUpdate) {
+    const { data, error } = await supabase.from('bookmarks').update(updates).eq('id', id).select().single()
+    if (error) throw new Error(error.message)
+    return data as Bookmark
+  },
+  async delete(id: string) {
+    const { error } = await supabase.from('bookmarks').delete().eq('id', id)
+    if (error) throw new Error(error.message)
+  },
+}
 
 // ============================================================
 // EXPENSES API

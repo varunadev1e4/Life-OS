@@ -4,10 +4,11 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, Library, BookOpen, CheckSquare,
   Target, BarChart2, Settings, LogOut, ChevronRight, StickyNote, Sun, Moon,
-  Wallet, PartyPopper,
+  Wallet, PartyPopper, Heart, Bookmark,
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { useTheme } from '@/context/ThemeContext'
+import { openCommandPalette } from '@/components/ui/CommandPalette'
 import { QuickAddFAB } from '@/components/ui/QuickAddFAB'
 
 const NAV = [
@@ -19,6 +20,8 @@ const NAV = [
   { path: '/notes',     label: 'Notes',     Icon: StickyNote,      color: '#fbbf24' },
   { path: '/expenses',  label: 'Expenses',  Icon: Wallet,          color: '#34d399' },
   { path: '/occasions', label: 'Occasions', Icon: PartyPopper,     color: '#f472b6' },
+  { path: '/health',    label: 'Health',    Icon: Heart,           color: '#f87171' },
+  { path: '/bookmarks', label: 'Bookmarks', Icon: Bookmark,        color: '#38bdf8' },
   { path: '/analytics', label: 'Analytics', Icon: BarChart2,       color: '#a78bfa' },
   { path: '/settings',  label: 'Settings',  Icon: Settings,        color: '#a8a8c0' },
 ]
@@ -175,6 +178,13 @@ export function AppLayout({ children }: AppLayoutProps) {
             <span className="font-display font-bold text-[var(--text-primary)] tracking-tight">Life OS</span>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={openCommandPalette}
+              className="p-2 rounded-xl border border-[var(--border)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+              title="Command Palette (⌘K)"
+            >
+              <span className="text-[11px] font-mono font-bold">⌘K</span>
+            </button>
             <ThemeToggleButton />
             <span className="text-xs font-medium text-[var(--text-secondary)] px-2.5 py-1 rounded-lg bg-[var(--bg-elevated)]">
               {activeNav?.label ?? 'Home'}
