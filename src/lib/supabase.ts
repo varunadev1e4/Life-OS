@@ -299,18 +299,45 @@ export const settingsApi = {
       .select('*')
       .limit(1)
       .maybeSingle()
-    if (error) throw error
+    if (error) {
+      console.error('[settingsApi.get]', error)
+      throw new Error(error.message)
+    }
     return data as AppSettings | null
   },
 
   async create(pinHash: string): Promise<AppSettings> {
-    const { data, error } = await supabase
+    // Try insert first; if a row already exists, update it instead
+    const { data: inserted, error: insertError } = await supabase
       .from('app_settings')
-      .insert({ pin_hash: pinHash })
+      .insert({ pin_hash: pinHash, theme: 'dark' })
       .select()
       .single()
-    if (error) throw error
-    return data as AppSettings
+
+    if (!insertError) return inserted as AppSettings
+
+    // Row already exists — update the existing one
+    const isDuplicate =
+      insertError.code === '23505' ||
+      insertError.message?.includes('duplicate') ||
+      insertError.message?.includes('unique') ||
+      insertError.message?.includes('violates')
+
+    if (isDuplicate) {
+      const { data: updated, error: updateError } = await supabase
+        .from('app_settings')
+        .update({ pin_hash: pinHash })
+        .select()
+        .single()
+      if (updateError) {
+        console.error('[settingsApi.create -> update]', updateError)
+        throw new Error(updateError.message)
+      }
+      return updated as AppSettings
+    }
+
+    console.error('[settingsApi.create]', insertError)
+    throw new Error(insertError.message)
   },
 
   async updatePin(id: string, pinHash: string): Promise<AppSettings> {
@@ -320,7 +347,10 @@ export const settingsApi = {
       .eq('id', id)
       .select()
       .single()
-    if (error) throw error
+    if (error) {
+      console.error('[settingsApi.updatePin]', error)
+      throw new Error(error.message)
+    }
     return data as AppSettings
   },
 }

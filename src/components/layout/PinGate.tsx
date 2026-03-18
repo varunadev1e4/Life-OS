@@ -75,8 +75,9 @@ export function PinGate({ isSetup }: PinGateProps) {
       setIsLoading(true)
       try {
         await setupPin(firstPinRef.current)
-      } catch {
-        showError('Setup failed', 'Please try again')
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Setup failed'
+        showError('Setup failed', msg)
         reset()
         setIsLoading(false)
       }

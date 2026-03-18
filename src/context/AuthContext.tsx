@@ -94,9 +94,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const setupPin = useCallback(async (pin: string) => {
     const pinHash = await hashPin(pin)
-    const settings = await settingsApi.create(pinHash)
-    setSession(true)
-    setState({ isAuthenticated: true, isLoading: false, settings, hasSetup: true })
+    try {
+      const settings = await settingsApi.create(pinHash)
+      setSession(true)
+      setState({ isAuthenticated: true, isLoading: false, settings, hasSetup: true })
+    } catch (err) {
+      // Re-throw with the real message so PinGate can show it
+      const msg = err instanceof Error ? err.message : 'Unknown error'
+      console.error('[setupPin failed]', msg)
+      throw err
+    }
   }, [])
 
   const changePin = useCallback(async (currentPin: string, newPin: string): Promise<boolean> => {
