@@ -213,59 +213,33 @@ export function AppLayout({ children }: AppLayoutProps) {
         </main>
       </div>
 
-      {/* ── Mobile: floating bottom pill nav ──────────────────── */}
-      <div className="lg:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-40">
-        <motion.div
-          initial={{ y: 80, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 30, delay: 0.1 }}
-          className="flex items-center gap-1 px-2 py-2 rounded-2xl border border-[var(--border)]"
-          style={{
-            background: 'rgba(19,19,24,0.85)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04)',
-          }}
-        >
-          {MOBILE_NAV.map(({ path, label, Icon, color }) => {
-            const isActive = path === '/'
-              ? location.pathname === '/'
-              : location.pathname.startsWith(path)
-            return (
-              <NavLink
-                key={path}
-                to={path}
-                end={path === '/'}
-                className="relative flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all duration-150"
-                style={{ background: isActive ? `${color}20` : 'transparent' }}
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="mobile-pill"
-                    className="absolute inset-0 rounded-xl"
-                    style={{ background: `${color}18`, border: `1px solid ${color}30` }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                  />
-                )}
-                <Icon
-                  size={20}
-                  className="relative z-10 transition-all duration-150"
-                  style={{ color: isActive ? color : 'var(--text-muted)' }}
-                />
-                <span
-                  className="relative z-10 text-[9px] font-semibold mt-0.5 transition-colors duration-150 tracking-wide"
-                  style={{ color: isActive ? color : 'var(--text-muted)' }}
-                >
-                  {label}
-                </span>
-              </NavLink>
-            )
-          })}
-
-          {/* More button → Settings & Analytics */}
-          <MobileMoreMenu logout={logout} />
-        </motion.div>
-      </div>
+      {/* ── Mobile: bottom tab bar ───────────────────────────── */}
+      <nav
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex border-t border-[var(--border)]"
+        style={{ background: 'var(--bg-surface)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
+        {MOBILE_NAV.map(({ path, label, Icon, color }) => {
+          const isActive = path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)
+          return (
+            <NavLink
+              key={path}
+              to={path}
+              end={path === '/'}
+              className="flex-1 flex flex-col items-center justify-center py-3 gap-1"
+            >
+              <div className="relative flex items-center justify-center w-8 h-8 rounded-xl transition-all duration-200"
+                style={{ background: isActive ? `${color}18` : 'transparent' }}>
+                <Icon size={20} style={{ color: isActive ? color : 'var(--text-muted)' }} />
+              </div>
+              <span className="text-[9px] font-semibold tracking-wide"
+                style={{ color: isActive ? color : 'var(--text-muted)' }}>
+                {label}
+              </span>
+            </NavLink>
+          )
+        })}
+        <MobileMoreMenu logout={logout} />
+      </nav>
 
       <QuickAddFAB />
     </div>
@@ -276,33 +250,26 @@ export function AppLayout({ children }: AppLayoutProps) {
 function MobileMoreMenu({ logout }: { logout: () => void }) {
   const [open, setOpen] = useState(false)
   const location = useLocation()
-  const extraNav = NAV.slice(5) // Analytics + Settings
-
+  const extraNav = NAV.slice(5)
   const isExtraActive = extraNav.some(n => location.pathname.startsWith(n.path))
 
   return (
-    <div className="relative">
+    <div className="flex-1 flex flex-col items-center justify-center py-3 gap-1 relative">
       <AnimatePresence>
         {open && (
           <>
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="fixed inset-0 z-30"
               onClick={() => setOpen(false)}
             />
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 8 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 8 }}
+              initial={{ opacity: 0, y: 8, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 8, scale: 0.95 }}
               transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-              className="absolute bottom-full right-0 mb-3 rounded-2xl border border-[var(--border)] p-1.5 min-w-[160px] z-40"
-              style={{
-                background: 'rgba(19,19,24,0.95)',
-                backdropFilter: 'blur(20px)',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-              }}
+              className="absolute bottom-full right-0 mb-2 rounded-2xl border border-[var(--border)] p-1.5 min-w-[180px] z-40"
+              style={{ background: 'var(--bg-surface)', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}
             >
               {extraNav.map(({ path, label, Icon, color }) => (
                 <NavLink
@@ -330,24 +297,19 @@ function MobileMoreMenu({ logout }: { logout: () => void }) {
 
       <button
         onClick={() => setOpen(!open)}
-        className="relative flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all"
-        style={{ background: isExtraActive || open ? 'rgba(168,168,192,0.12)' : 'transparent' }}
+        className="flex flex-col items-center gap-1"
       >
-        <div className="flex gap-0.5">
-          {[0, 1, 2].map(i => (
-            <motion.div
-              key={i}
-              animate={{ scale: open ? [1, 1.3, 1] : 1 }}
-              transition={{ delay: i * 0.05 }}
-              className="w-1 h-1 rounded-full"
-              style={{ background: isExtraActive || open ? 'var(--text-primary)' : 'var(--text-muted)' }}
-            />
-          ))}
+        <div className="w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200"
+          style={{ background: isExtraActive || open ? 'rgba(168,168,192,0.15)' : 'transparent' }}>
+          <div className="flex gap-[3px]">
+            {[0,1,2].map(i => (
+              <div key={i} className="w-1 h-1 rounded-full"
+                style={{ background: isExtraActive || open ? 'var(--text-primary)' : 'var(--text-muted)' }} />
+            ))}
+          </div>
         </div>
-        <span
-          className="text-[9px] font-semibold mt-1.5 tracking-wide"
-          style={{ color: isExtraActive || open ? 'var(--text-primary)' : 'var(--text-muted)' }}
-        >
+        <span className="text-[9px] font-semibold tracking-wide"
+          style={{ color: isExtraActive || open ? 'var(--text-primary)' : 'var(--text-muted)' }}>
           More
         </span>
       </button>
